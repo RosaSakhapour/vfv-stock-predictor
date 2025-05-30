@@ -78,3 +78,28 @@ st.pyplot(fig)
 
 st.subheader("Raw Prediction Data")
 st.dataframe(predictions.tail(20))
+
+
+
+#Live Prediction for Tomorrow
+st.subheader("🔮 Prediction for Tomorrow")
+
+latest_row = vfv.iloc[[-1]].copy()
+
+for horizon in horizons:
+    ratio_col = f"Close_Ratio_{horizon}"
+    trend_col = f"Trend_{horizon}"
+    latest_row[ratio_col] = vfv["Close"].iloc[-1] / vfv["Close"].rolling(horizon).mean().iloc[-1]
+    latest_row[trend_col] = vfv["Target"].shift(1).rolling(horizon).sum().iloc[-1]
+
+latest_prob = model.predict_proba(latest_row[new_predictors])[0][1]
+latest_pred = "⬆️ Up" if latest_prob >= 0.5 else "⬇️ Down"
+
+latest_date = latest_row.index[0].date()
+st.metric(
+    label=f"As of {latest_date}, model predicts tomorrow will be:",
+    value=latest_pred,
+    delta=f"{latest_prob*100:.1f}% confidence"
+)
+
+
