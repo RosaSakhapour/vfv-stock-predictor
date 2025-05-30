@@ -26,6 +26,8 @@ vfv = load_data()
 horizons = [2, 5, 60, 250, 1000]
 new_predictors = []
 
+model = RandomForestClassifier(n_estimators=200, min_samples_split=50, random_state=1)
+
 #Live Prediction for Tomorrow
 st.subheader("🔮 Prediction for Tomorrow")
 
@@ -77,7 +79,6 @@ def backtest(data, model, predictors, start=300, step=50):
         all_predictions.append(predictions)
     return pd.concat(all_predictions)
 
-model = RandomForestClassifier(n_estimators=200, min_samples_split=50, random_state=1)
 predictions = backtest(vfv, model, new_predictors)
 
 # --- Display results ---
