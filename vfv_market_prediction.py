@@ -22,6 +22,10 @@ def load_data():
 
 vfv = load_data()
 
+# --- Feature engineering ---
+horizons = [2, 5, 60, 250, 1000]
+new_predictors = []
+
 #Live Prediction for Tomorrow
 st.subheader("🔮 Prediction for Tomorrow")
 
@@ -43,10 +47,6 @@ st.metric(
     delta=f"{latest_prob*100:.1f}% confidence"
 )
 
-
-# --- Feature engineering ---
-horizons = [2, 5, 60, 250, 1000]
-new_predictors = []
 
 for horizon in horizons:
     rolling_averages = vfv.rolling(horizon).mean()
