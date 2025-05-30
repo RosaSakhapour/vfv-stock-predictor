@@ -37,3 +37,6 @@ The app shows:
 ```bash
 pip install -r requirements.txt
 streamlit run vfv_market_prediction.py
+
+📬 Contact
+Built by Rosa Sakhapour · Feedback welcome!
