@@ -10,6 +10,18 @@ st.title("📈 VFV.TO Stock Movement Predictor")
 st.write("This app uses a machine learning model to predict whether VFV.TO (S&P 500 ETF) will go up or down tomorrow.")
 
 
+# --- Load and preprocess data ---
+@st.cache_data
+def load_data():
+    vfv = yf.Ticker("VFV.TO").history(period="max")
+    vfv.index = pd.to_datetime(vfv.index, utc=True)
+    vfv.drop(["Dividends", "Stock Splits"], axis=1, inplace=True)
+    vfv["Tomorrow"] = vfv["Close"].shift(-1)
+    vfv["Target"] = (vfv["Tomorrow"] > vfv["Close"]).astype(int)
+    return vfv
+
+vfv = load_data()
+
 #Live Prediction for Tomorrow
 st.subheader("🔮 Prediction for Tomorrow")
 
@@ -31,18 +43,6 @@ st.metric(
     delta=f"{latest_prob*100:.1f}% confidence"
 )
 
-
-# --- Load and preprocess data ---
-@st.cache_data
-def load_data():
-    vfv = yf.Ticker("VFV.TO").history(period="max")
-    vfv.index = pd.to_datetime(vfv.index, utc=True)
-    vfv.drop(["Dividends", "Stock Splits"], axis=1, inplace=True)
-    vfv["Tomorrow"] = vfv["Close"].shift(-1)
-    vfv["Target"] = (vfv["Tomorrow"] > vfv["Close"]).astype(int)
-    return vfv
-
-vfv = load_data()
 
 # --- Feature engineering ---
 horizons = [2, 5, 60, 250, 1000]
