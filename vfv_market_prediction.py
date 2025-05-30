@@ -28,26 +28,34 @@ new_predictors = []
 
 model = RandomForestClassifier(n_estimators=200, min_samples_split=50, random_state=1)
 
-#Live Prediction for Tomorrow
+# --- Live Prediction for Tomorrow ---
 st.subheader("🔮 Prediction for Tomorrow")
 
+# Get the latest row
 latest_row = vfv.iloc[[-1]].copy()
 
+# Create features for latest row
 for horizon in horizons:
     ratio_col = f"Close_Ratio_{horizon}"
     trend_col = f"Trend_{horizon}"
     latest_row[ratio_col] = vfv["Close"].iloc[-1] / vfv["Close"].rolling(horizon).mean().iloc[-1]
     latest_row[trend_col] = vfv["Target"].shift(1).rolling(horizon).sum().iloc[-1]
 
+# 👉 Fit model before predicting!
+model.fit(vfv[new_predictors], vfv["Target"])
+
+# Predict tomorrow's direction
 latest_prob = model.predict_proba(latest_row[new_predictors])[0][1]
 latest_pred = "⬆️ Up" if latest_prob >= 0.5 else "⬇️ Down"
 
+# Display
 latest_date = latest_row.index[0].date()
 st.metric(
     label=f"As of {latest_date}, model predicts tomorrow will be:",
     value=latest_pred,
     delta=f"{latest_prob*100:.1f}% confidence"
 )
+
 
 
 for horizon in horizons:
