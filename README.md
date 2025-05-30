@@ -92,5 +92,7 @@ streamlit run vfv_market_prediction.py
 - Add sentiment features from news headlines
 - Improve feature timing (e.g., pre-market indicators)
 
+
 📬 Contact
+
 Built by Rosa Sakhapour · Feedback welcome!
