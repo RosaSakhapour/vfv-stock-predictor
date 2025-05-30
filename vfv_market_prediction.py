@@ -41,7 +41,7 @@ vfv = vfv.dropna(subset=vfv.columns[vfv.columns != "Tomorrow"])
 def predict(train, test, predictors, model):
     model.fit(train[predictors], train["Target"])
     preds = model.predict_proba(test[predictors])[:, 1]
-    preds = (preds >= 0.6).astype(int)
+    preds = (preds >= 0.5).astype(int)
     preds = pd.Series(preds, index=test.index, name="Predictions")
     return pd.concat([test["Target"], preds], axis=1)
 
