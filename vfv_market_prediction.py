@@ -9,7 +9,6 @@ st.set_page_config(page_title="VFV Stock Predictor", layout="centered")
 st.title("📈 VFV.TO Stock Movement Predictor")
 st.write("This app uses a machine learning model to predict whether VFV.TO (S&P 500 ETF) will go up or down tomorrow.")
 
-
 # --- Load and preprocess data ---
 @st.cache_data
 def load_data():
@@ -25,38 +24,6 @@ vfv = load_data()
 # --- Feature engineering ---
 horizons = [2, 5, 60, 250, 1000]
 new_predictors = []
-
-model = RandomForestClassifier(n_estimators=200, min_samples_split=50, random_state=1)
-
-# --- Live Prediction for Tomorrow ---
-st.subheader("🔮 Prediction for Tomorrow")
-
-# Get the latest row
-latest_row = vfv.iloc[[-1]].copy()
-
-# Create features for latest row
-for horizon in horizons:
-    ratio_col = f"Close_Ratio_{horizon}"
-    trend_col = f"Trend_{horizon}"
-    latest_row[ratio_col] = vfv["Close"].iloc[-1] / vfv["Close"].rolling(horizon).mean().iloc[-1]
-    latest_row[trend_col] = vfv["Target"].shift(1).rolling(horizon).sum().iloc[-1]
-
-# 👉 Fit model before predicting!
-model.fit(vfv[new_predictors], vfv["Target"])
-
-# Predict tomorrow's direction
-latest_prob = model.predict_proba(latest_row[new_predictors])[0][1]
-latest_pred = "⬆️ Up" if latest_prob >= 0.5 else "⬇️ Down"
-
-# Display
-latest_date = latest_row.index[0].date()
-st.metric(
-    label=f"As of {latest_date}, model predicts tomorrow will be:",
-    value=latest_pred,
-    delta=f"{latest_prob*100:.1f}% confidence"
-)
-
-
 
 for horizon in horizons:
     rolling_averages = vfv.rolling(horizon).mean()
@@ -87,6 +54,7 @@ def backtest(data, model, predictors, start=300, step=50):
         all_predictions.append(predictions)
     return pd.concat(all_predictions)
 
+model = RandomForestClassifier(n_estimators=200, min_samples_split=50, random_state=1)
 predictions = backtest(vfv, model, new_predictors)
 
 # --- Display results ---
@@ -111,3 +79,29 @@ st.pyplot(fig)
 st.subheader("Raw Prediction Data")
 st.dataframe(predictions.tail(20))
 
+# --- Live Prediction for Tomorrow ---
+st.subheader("🔮 Prediction for Tomorrow")
+
+# Re-train the model on all available data
+model.fit(vfv[new_predictors], vfv["Target"])
+
+# Get the most recent row and calculate features for it
+latest_row = vfv.iloc[[-1]].copy()
+
+for horizon in horizons:
+    ratio_col = f"Close_Ratio_{horizon}"
+    trend_col = f"Trend_{horizon}"
+    latest_row[ratio_col] = vfv["Close"].iloc[-1] / vfv["Close"].rolling(horizon).mean().iloc[-1]
+    latest_row[trend_col] = vfv["Target"].shift(1).rolling(horizon).sum().iloc[-1]
+
+# Make the prediction
+latest_prob = model.predict_proba(latest_row[new_predictors])[0][1]
+latest_pred = "⬆️ Up" if latest_prob >= 0.5 else "⬇️ Down"
+latest_date = latest_row.index[0].date()
+
+# Display the result
+st.metric(
+    label=f"As of {latest_date}, model predicts tomorrow will be:",
+    value=latest_pred,
+    delta=f"{latest_prob * 100:.1f}% confidence"
+)
